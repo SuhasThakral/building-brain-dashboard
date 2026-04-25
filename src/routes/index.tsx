@@ -1,26 +1,57 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { TopBar } from "@/components/buildingbrain/TopBar";
+import { ContextFile } from "@/components/buildingbrain/ContextFile";
+import { EventFeed } from "@/components/buildingbrain/EventFeed";
+import { useSimulation } from "@/hooks/useSimulation";
 
 export const Route = createFileRoute("/")({
   component: Index,
+  head: () => ({
+    meta: [
+      { title: "BuildingBrain — WEG Immanuelkirchstraße 26" },
+      {
+        name: "description",
+        content:
+          "AI-powered property management dashboard for WEG Immanuelkirchstraße 26, Berlin. Live event feed and incremental context file updates.",
+      },
+    ],
+  }),
 });
 
-// IMPORTANT: Replace this placeholder. For sites with multiple pages (About, Services, Contact, etc.),
-// create separate route files (about.tsx, services.tsx, contact.tsx) — don't put all pages in this file.
-function PlaceholderIndex() {
+function Index() {
+  const {
+    sections,
+    prevSections,
+    feed,
+    stats,
+    flash,
+    isPlaying,
+    playingDay,
+    playDay,
+    reset,
+  } = useSimulation();
+
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
+    <div className="flex h-screen flex-col bg-background text-foreground">
+      <TopBar
+        onPlayDay={playDay}
+        onReset={reset}
+        isPlaying={isPlaying}
+        playingDay={playingDay}
       />
+
+      <main className="flex flex-1 overflow-hidden">
+        <section className="w-3/5 border-r border-border">
+          <ContextFile
+            sections={sections}
+            prevSections={prevSections}
+            flash={flash}
+          />
+        </section>
+        <aside className="w-2/5">
+          <EventFeed feed={feed} stats={stats} />
+        </aside>
+      </main>
     </div>
   );
-}
-
-function Index() {
-  return <PlaceholderIndex />;
 }
