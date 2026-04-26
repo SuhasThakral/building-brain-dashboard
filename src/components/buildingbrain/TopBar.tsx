@@ -109,7 +109,11 @@ export function TopBar({
                 onVoiceStart();
               }
             }}
-            disabled={!voiceSupported || voiceState === "thinking"}
+            disabled={
+              !voiceSupported ||
+              voiceState === "thinking" ||
+              voiceState === "transcribing"
+            }
             title={
               voiceSupported
                 ? voiceState === "recording"
