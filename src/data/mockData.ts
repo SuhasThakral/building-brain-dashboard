@@ -12,6 +12,16 @@ export type SectionKey =
   | 'pending'
   | 'financials'
 
+export type NoiseStage = 'rule' | 'ai'
+
+export interface FraudDetails {
+  vendor: string
+  realIban: string
+  claimedIban: string
+  realBic: string
+  claimedBic: string
+}
+
 export interface Event {
   id: string
   type: 'email' | 'invoice' | 'bank'
@@ -21,6 +31,10 @@ export interface Event {
   isSignal: boolean
   targetSection?: SectionKey
   appendLine?: string // line appended to the target section
+  isFraud?: boolean
+  fraudDetails?: FraudDetails
+  noiseStage?: NoiseStage
+  noiseReason?: string
 }
 
 export interface DayData {
