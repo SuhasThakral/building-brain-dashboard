@@ -13,6 +13,7 @@ const SECTION_LABELS: Record<SectionKey, string> = {
   legal: "Legal Disputes",
   pending: "Pending Owner Actions",
   financials: "Financial Alerts",
+  resolved: "Resolved Issues",
 };
 
 const ICONS = {
