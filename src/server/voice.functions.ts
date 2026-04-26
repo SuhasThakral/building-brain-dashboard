@@ -241,3 +241,58 @@ export const voiceQuery = createServerFn({ method: "POST" })
       ttsError: tts.error,
     };
   });
+
+/**
+ * Transcribe audio using Gemini's multimodal input. Accepts base64-encoded
+ * audio (webm/opus, mp4, wav, etc) and returns the transcript text.
+ * This works inside iframes where Web Speech API is blocked.
+ */
+export const transcribeAudio = createServerFn({ method: "POST" })
+  .inputValidator(
+    (input: { base64: string; mimeType: string }) => {
+      if (!input?.base64) throw new Error("base64 audio is required");
+      return {
+        base64: input.base64,
+        mimeType: input.mimeType || "audio/webm",
+      };
+    },
+  )
+  .handler(async ({ data }): Promise<{ transcript: string }> => {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) throw new Error("GEMINI_API_KEY is not configured");
+
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`;
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [
+          {
+            role: "user",
+            parts: [
+              {
+                text: "Transcribe this audio verbatim. Return only the spoken words as plain text, no commentary, no quotes. If the audio is silent or unintelligible, return the single word: EMPTY",
+              },
+              {
+                inlineData: {
+                  mimeType: data.mimeType,
+                  data: data.base64,
+                },
+              },
+            ],
+          },
+        ],
+        generationConfig: { temperature: 0 },
+      }),
+    });
+    if (!res.ok) {
+      const body = await res.text();
+      throw new Error(`Gemini transcription error [${res.status}]: ${body.slice(0, 300)}`);
+    }
+    const json = (await res.json()) as {
+      candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
+    };
+    let transcript = (json.candidates?.[0]?.content?.parts?.[0]?.text ?? "").trim();
+    if (transcript === "EMPTY") transcript = "";
+    return { transcript };
+  });
