@@ -264,6 +264,16 @@ export function useSimulation() {
     [],
   );
 
+  /** Manually append a line to a section (used by the voice assistant). */
+  const patchSection = useCallback((section: SectionKey, line: string) => {
+    setSections((prev) => {
+      setPrevSections((p) => ({ ...p, [section]: prev[section] }));
+      return { ...prev, [section]: appendToSection(prev[section], line) };
+    });
+    setFlash((f) => ({ ...f, [section]: Date.now() }));
+    setStats((s) => ({ ...s, sectionsUpdated: s.sectionsUpdated + 1 }));
+  }, []);
+
   return {
     sections,
     prevSections,
@@ -276,6 +286,7 @@ export function useSimulation() {
     reset,
     getSections,
     applySmartPatch,
+    patchSection,
     fraudAlerts,
     dismissFraud,
   };

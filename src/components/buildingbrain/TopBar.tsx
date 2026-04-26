@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { Play, RotateCcw, Building2, Sparkles } from "lucide-react";
+import { Play, RotateCcw, Building2, Sparkles, Mic } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import {
   Select,
   SelectContent,
@@ -8,6 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import type { VoiceState } from "@/hooks/useVoiceQuery";
 
 interface TopBarProps {
   onPlayDay: (day: number) => void;
@@ -15,6 +17,10 @@ interface TopBarProps {
   onOpenIngest: () => void;
   isPlaying: boolean;
   playingDay: number | null;
+  onVoiceStart: () => void;
+  onVoiceStop: () => void;
+  voiceState: VoiceState;
+  voiceSupported: boolean;
 }
 
 export function TopBar({
@@ -23,6 +29,10 @@ export function TopBar({
   onOpenIngest,
   isPlaying,
   playingDay,
+  onVoiceStart,
+  onVoiceStop,
+  voiceState,
+  voiceSupported,
 }: TopBarProps) {
   const [selectedDay, setSelectedDay] = useState<string>("1");
 
@@ -89,6 +99,47 @@ export function TopBar({
             <Sparkles className="h-3.5 w-3.5" />
             Ingest
           </Button>
+
+          <button
+            type="button"
+            onMouseDown={onVoiceStart}
+            onMouseUp={onVoiceStop}
+            onMouseLeave={() => voiceState === "recording" && onVoiceStop()}
+            onTouchStart={(e) => {
+              e.preventDefault();
+              onVoiceStart();
+            }}
+            onTouchEnd={(e) => {
+              e.preventDefault();
+              onVoiceStop();
+            }}
+            disabled={!voiceSupported || voiceState === "thinking"}
+            title={
+              voiceSupported
+                ? "Hold to ask the building"
+                : "Voice not supported — use Chrome"
+            }
+            className={cn(
+              "flex h-9 select-none items-center gap-1.5 rounded-md border px-3 text-xs font-semibold transition-all disabled:opacity-50",
+              voiceState === "recording" &&
+                "animate-pulse border-red-500/60 bg-red-500/20 text-red-300 shadow-[0_0_16px_-4px_rgba(248,113,113,0.6)]",
+              voiceState === "thinking" &&
+                "border-yellow-500/40 bg-yellow-500/10 text-yellow-300",
+              voiceState === "answering" &&
+                "border-emerald/50 bg-emerald/15 text-emerald",
+              (voiceState === "idle" || voiceState === "error") &&
+                "border-emerald/30 bg-emerald/10 text-emerald hover:bg-emerald/20",
+            )}
+          >
+            <Mic className="h-3.5 w-3.5" />
+            {voiceState === "recording"
+              ? "Listening…"
+              : voiceState === "thinking"
+                ? "Thinking…"
+                : voiceState === "answering"
+                  ? "Speaking"
+                  : "Ask"}
+          </button>
 
           <Button
             size="sm"
