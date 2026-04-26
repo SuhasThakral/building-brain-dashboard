@@ -102,21 +102,19 @@ export function TopBar({
 
           <button
             type="button"
-            onMouseDown={onVoiceStart}
-            onMouseUp={onVoiceStop}
-            onMouseLeave={() => voiceState === "recording" && onVoiceStop()}
-            onTouchStart={(e) => {
-              e.preventDefault();
-              onVoiceStart();
-            }}
-            onTouchEnd={(e) => {
-              e.preventDefault();
-              onVoiceStop();
+            onClick={() => {
+              if (voiceState === "recording") {
+                onVoiceStop();
+              } else {
+                onVoiceStart();
+              }
             }}
             disabled={!voiceSupported || voiceState === "thinking"}
             title={
               voiceSupported
-                ? "Hold to ask the building"
+                ? voiceState === "recording"
+                  ? "Click to stop and send"
+                  : "Click to ask the building"
                 : "Voice not supported — use Chrome"
             }
             className={cn(
@@ -133,7 +131,7 @@ export function TopBar({
           >
             <Mic className="h-3.5 w-3.5" />
             {voiceState === "recording"
-              ? "Listening…"
+              ? "Stop"
               : voiceState === "thinking"
                 ? "Thinking…"
                 : voiceState === "answering"

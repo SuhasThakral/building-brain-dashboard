@@ -104,10 +104,28 @@ export function useVoiceQuery({ getSections, patchSection }: UseVoiceQueryArgs) 
   );
 
   const startRecording = useCallback(() => {
-    if (state === "recording" || state === "thinking") return;
+    console.log("[voice] startRecording, state =", state);
+    if (state === "recording" || state === "thinking") {
+      // Toggle off if already recording
+      if (state === "recording") {
+        try {
+          recognitionRef.current?.stop();
+        } catch {
+          /* ignore */
+        }
+      }
+      return;
+    }
     const SRClass = getSpeechRecognition();
     if (!SRClass) {
-      setErrorMsg("Voice input not supported in this browser. Try Chrome.");
+      setErrorMsg(
+        "Voice input not supported in this browser. Use Chrome, Edge, or Safari.",
+      );
+      setState("error");
+      return;
+    }
+    if (typeof window !== "undefined" && !window.isSecureContext) {
+      setErrorMsg("Microphone requires HTTPS. Open the published URL.");
       setState("error");
       return;
     }
@@ -119,7 +137,7 @@ export function useVoiceQuery({ getSections, patchSection }: UseVoiceQueryArgs) 
     const rec = new SRClass();
     rec.lang = "en-US";
     rec.interimResults = true;
-    rec.continuous = false;
+    rec.continuous = true; // keep listening until the user clicks stop
     rec.maxAlternatives = 1;
 
     rec.onresult = (e) => {
@@ -131,26 +149,40 @@ export function useVoiceQuery({ getSections, patchSection }: UseVoiceQueryArgs) 
         };
         const txt = r[0]?.transcript ?? "";
         if ((r as { isFinal?: boolean }).isFinal) {
-          finalText += txt;
+          finalText += txt + " ";
         } else {
           interimText += txt;
         }
       }
-      if (finalText) transcriptRef.current = finalText;
-      setInterim(interimText || finalText);
+      if (finalText) transcriptRef.current += finalText;
+      setInterim((transcriptRef.current + " " + interimText).trim());
+      console.log("[voice] result, transcript so far:", transcriptRef.current);
     };
     rec.onerror = (e) => {
+      console.warn("[voice] onerror:", e.error);
       if (e.error === "no-speech" || e.error === "aborted") {
         setState("idle");
         return;
       }
-      setErrorMsg(`Mic error: ${e.error}`);
+      const friendly =
+        e.error === "not-allowed"
+          ? "Microphone permission denied. Allow it in your browser settings."
+          : e.error === "audio-capture"
+            ? "No microphone found."
+            : e.error === "network"
+              ? "Speech recognition needs internet (Chrome sends audio to Google)."
+              : `Mic error: ${e.error}`;
+      setErrorMsg(friendly);
       setState("error");
     };
     rec.onend = () => {
-      const final = transcriptRef.current.trim() || interim.trim();
+      console.log(
+        "[voice] onend, final transcript:",
+        transcriptRef.current,
+      );
+      const final = transcriptRef.current.trim();
       if (!final) {
-        if (state !== "error") setState("idle");
+        setState((s) => (s === "error" ? s : "idle"));
         return;
       }
       void runQuery(final);
@@ -160,13 +192,16 @@ export function useVoiceQuery({ getSections, patchSection }: UseVoiceQueryArgs) 
     try {
       rec.start();
       setState("recording");
+      console.log("[voice] recognition started");
     } catch (err) {
+      console.error("[voice] start failed", err);
       setErrorMsg(err instanceof Error ? err.message : "Could not start mic");
       setState("error");
     }
-  }, [state, interim, runQuery]);
+  }, [state, runQuery]);
 
   const stopRecording = useCallback(() => {
+    console.log("[voice] stopRecording called");
     try {
       recognitionRef.current?.stop();
     } catch {
