@@ -109,17 +109,13 @@ export function TopBar({
                 onVoiceStart();
               }
             }}
-            disabled={
-              !voiceSupported ||
-              voiceState === "thinking" ||
-              voiceState === "transcribing"
-            }
+            disabled={voiceState === "thinking" || voiceState === "transcribing"}
             title={
-              voiceSupported
-                ? voiceState === "recording"
-                  ? "Click to stop and send"
-                  : "Click to ask the building"
-                : "Voice not supported — use Chrome"
+              voiceState === "recording"
+                ? "Click to stop and send"
+                : voiceSupported
+                  ? "Click to ask the building"
+                  : "Click to check microphone access"
             }
             className={cn(
               "flex h-9 select-none items-center gap-1.5 rounded-md border px-3 text-xs font-semibold transition-all disabled:opacity-50",

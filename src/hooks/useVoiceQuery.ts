@@ -62,7 +62,6 @@ export function useVoiceQuery({ getSections, patchSection }: UseVoiceQueryArgs) 
   const supported =
     typeof window !== "undefined" &&
     typeof navigator !== "undefined" &&
-    !!navigator.mediaDevices &&
     typeof MediaRecorder !== "undefined";
 
   useEffect(() => {
@@ -185,13 +184,20 @@ export function useVoiceQuery({ getSections, patchSection }: UseVoiceQueryArgs) 
 
     if (!supported) {
       setErrorMsg(
-        "Voice input not supported in this browser. Try Chrome, Edge, or Safari.",
+        "Voice recording is not supported in this browser. Try Chrome, Edge, or Safari.",
       );
       setState("error");
       return;
     }
     if (typeof window !== "undefined" && !window.isSecureContext) {
       setErrorMsg("Microphone requires HTTPS.");
+      setState("error");
+      return;
+    }
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setErrorMsg(
+        "Microphone access is blocked in this preview or browser. Open the preview in a new tab and allow microphone access.",
+      );
       setState("error");
       return;
     }
@@ -202,6 +208,19 @@ export function useVoiceQuery({ getSections, patchSection }: UseVoiceQueryArgs) 
     chunksRef.current = [];
 
     try {
+      try {
+        const permission = await navigator.permissions?.query({
+          name: "microphone" as PermissionName,
+        });
+        if (permission?.state === "denied") {
+          setErrorMsg("Microphone blocked. Enable it in browser settings, then reload.");
+          setState("error");
+          return;
+        }
+      } catch {
+        // Safari / some embedded browsers do not support microphone permission query.
+      }
+
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
       const mime = pickMimeType();
