@@ -419,6 +419,8 @@ export const SIMULATION_DAYS: Record<number, DayData> = {
         timestamp: '2026-01-06 16:05',
         subject: 'Internet/TV-Anschluss',
         isSignal: false,
+        noiseStage: 'ai',
+        noiseReason: 'Tenant ISP question — out of scope, FAQ link auto-replied',
       },
       {
         id: 'INV-00200',
