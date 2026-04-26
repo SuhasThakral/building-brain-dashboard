@@ -81,6 +81,7 @@ export function useSimulation() {
   const [flash, setFlash] = useState<SectionFlash>({});
   const [isPlaying, setIsPlaying] = useState(false);
   const [playingDay, setPlayingDay] = useState<number | null>(null);
+  const [fraudAlerts, setFraudAlerts] = useState<FraudAlert[]>([]);
 
   const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
 
@@ -93,6 +94,12 @@ export function useSimulation() {
     return () => clearTimers();
   }, [clearTimers]);
 
+  const dismissFraud = useCallback((id: string) => {
+    setFraudAlerts((prev) =>
+      prev.map((a) => (a.id === id ? { ...a, dismissed: true } : a)),
+    );
+  }, []);
+
   const reset = useCallback(() => {
     clearTimers();
     setSections(initialSections());
@@ -100,6 +107,7 @@ export function useSimulation() {
     setFeed([]);
     setStats(initialStats());
     setFlash({});
+    setFraudAlerts([]);
     setIsPlaying(false);
     setPlayingDay(null);
   }, [clearTimers]);
@@ -107,6 +115,28 @@ export function useSimulation() {
   const ingestEvent = useCallback((evt: Event) => {
     const arrived: FeedEvent = { ...evt, arrivedAt: Date.now() };
     setFeed((f) => [arrived, ...f]);
+
+    // FRAUD: blocked, never touches context file, raises alert
+    if (evt.isFraud && evt.fraudDetails) {
+      setFraudAlerts((prev) => [
+        {
+          id: evt.id,
+          arrivedAt: Date.now(),
+          details: evt.fraudDetails!,
+          sender: evt.sender,
+          subject: evt.subject,
+          dismissed: false,
+        },
+        ...prev,
+      ]);
+      setStats((s) => ({
+        ...s,
+        eventsProcessed: s.eventsProcessed + 1,
+        fraudBlocked: s.fraudBlocked + 1,
+      }));
+      return;
+    }
+
     setStats((s) => ({
       ...s,
       eventsProcessed: s.eventsProcessed + 1,
@@ -115,6 +145,12 @@ export function useSimulation() {
           ? s.sectionsUpdated + 1
           : s.sectionsUpdated,
       noiseFiltered: evt.isSignal ? s.noiseFiltered : s.noiseFiltered + 1,
+      noiseRule:
+        !evt.isSignal && evt.noiseStage === "rule"
+          ? s.noiseRule + 1
+          : s.noiseRule,
+      noiseAi:
+        !evt.isSignal && evt.noiseStage === "ai" ? s.noiseAi + 1 : s.noiseAi,
     }));
 
     if (evt.isSignal && evt.targetSection && evt.appendLine) {
