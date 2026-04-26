@@ -456,6 +456,8 @@ export const SIMULATION_DAYS: Record<number, DayData> = {
         timestamp: '2026-01-07 10:54',
         subject: 'Wartungsbericht',
         isSignal: false,
+        noiseStage: 'rule',
+        noiseReason: 'Maintenance report — auto-archived against DL-013 record',
       },
       {
         id: 'EMAIL-06573',
@@ -464,6 +466,8 @@ export const SIMULATION_DAYS: Record<number, DayData> = {
         timestamp: '2026-01-07 17:26',
         subject: 'Rechnung RE-2026-6322',
         isSignal: false,
+        noiseStage: 'rule',
+        noiseReason: 'Utility invoice notification — auto-matched to DL-009',
       },
       {
         id: 'INV-00201',
