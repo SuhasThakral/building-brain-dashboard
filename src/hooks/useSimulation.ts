@@ -8,12 +8,17 @@ import {
 
 export interface FeedEvent extends Event {
   arrivedAt: number; // epoch ms when added to feed
+  // Optional smart-patch annotations (for events ingested by Gemini)
+  smartAction?: "append" | "update" | "resolve" | "flag_conflict" | "ignore";
+  reason?: string;
 }
 
 export interface Stats {
   eventsProcessed: number;
   sectionsUpdated: number;
   noiseFiltered: number;
+  conflicts: number;
+  resolved: number;
 }
 
 export interface SectionFlash {
@@ -26,6 +31,8 @@ const initialStats = (): Stats => ({
   eventsProcessed: 0,
   sectionsUpdated: 0,
   noiseFiltered: 0,
+  conflicts: 0,
+  resolved: 0,
 });
 
 const PLACEHOLDERS = [
