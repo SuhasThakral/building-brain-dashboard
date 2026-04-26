@@ -72,7 +72,7 @@ export function TopBar({
               size="sm"
               onClick={() => onPlayDay(Number(selectedDay))}
               disabled={isPlaying}
-              className="h-7 gap-1.5 bg-emerald px-3 text-xs font-semibold text-primary-foreground hover:bg-emerald/90"
+              className="h-7 gap-1.5 bg-gradient-to-r from-emerald to-emerald/70 px-3 text-xs font-semibold text-primary-foreground shadow-[0_0_16px_-4px_var(--emerald-glow)] hover:opacity-90"
             >
               <Play className="h-3 w-3 fill-current" />
               {isPlaying && playingDay === Number(selectedDay)
