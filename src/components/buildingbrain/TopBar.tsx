@@ -109,7 +109,11 @@ export function TopBar({
                 onVoiceStart();
               }
             }}
-            disabled={!voiceSupported || voiceState === "thinking"}
+            disabled={
+              !voiceSupported ||
+              voiceState === "thinking" ||
+              voiceState === "transcribing"
+            }
             title={
               voiceSupported
                 ? voiceState === "recording"
@@ -121,7 +125,7 @@ export function TopBar({
               "flex h-9 select-none items-center gap-1.5 rounded-md border px-3 text-xs font-semibold transition-all disabled:opacity-50",
               voiceState === "recording" &&
                 "animate-pulse border-red-500/60 bg-red-500/20 text-red-300 shadow-[0_0_16px_-4px_rgba(248,113,113,0.6)]",
-              voiceState === "thinking" &&
+              (voiceState === "transcribing" || voiceState === "thinking") &&
                 "border-yellow-500/40 bg-yellow-500/10 text-yellow-300",
               voiceState === "answering" &&
                 "border-emerald/50 bg-emerald/15 text-emerald",
@@ -132,11 +136,13 @@ export function TopBar({
             <Mic className="h-3.5 w-3.5" />
             {voiceState === "recording"
               ? "Stop"
-              : voiceState === "thinking"
-                ? "Thinking…"
-                : voiceState === "answering"
-                  ? "Speaking"
-                  : "Ask"}
+              : voiceState === "transcribing"
+                ? "Transcribing…"
+                : voiceState === "thinking"
+                  ? "Thinking…"
+                  : voiceState === "answering"
+                    ? "Speaking"
+                    : "Ask"}
           </button>
 
           <Button
