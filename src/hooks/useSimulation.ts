@@ -290,8 +290,88 @@ export function useSimulation() {
 
       if (!isSignal || !patch.newLine) return;
       const target = patch.targetSection;
-
       const sourceId = feedEvt.id;
+
+      // ── RESOLVE: move the line out of its source section into "resolved" ──
+      if (effectiveAction === "resolve") {
+        setSections((prev) => {
+          const sourceContent = prev[target] ?? "";
+          const lines = sourceContent.split("\n");
+
+          // Find the line to remove (and its trailing `src:` trace line)
+          let lineIndex = -1;
+          if (effectiveTargetLine) {
+            lineIndex = lines.findIndex((l) => l === effectiveTargetLine);
+            if (lineIndex < 0) {
+              lineIndex = lines.findIndex((l) => l.includes(effectiveTargetLine!));
+            }
+          }
+          if (lineIndex < 0) {
+            const unitMatch = patch.newLine!.match(
+              /(WE\s?\d+|HAUS-\d+|TG\s?\d+|GE\s?\d+)/,
+            );
+            if (unitMatch) {
+              lineIndex = lines.findIndex(
+                (l) =>
+                  l.includes(unitMatch[0]) &&
+                  !l.includes("[RESOLVED") &&
+                  l.trim().startsWith("- "),
+              );
+            }
+          }
+
+          let newSourceLines = lines;
+          if (lineIndex >= 0) {
+            // Also drop the immediately following `src:` trace line if present
+            const dropEnd =
+              lines[lineIndex + 1]?.trim().startsWith("`src:") ||
+              lines[lineIndex + 1]?.includes("`src:")
+                ? lineIndex + 2
+                : lineIndex + 1;
+            newSourceLines = [
+              ...lines.slice(0, lineIndex),
+              ...lines.slice(dropEnd),
+            ];
+          }
+
+          let cleanSource = newSourceLines.join("\n").trim();
+          if (!cleanSource) {
+            // Restore the section's natural placeholder
+            if (target === "open-issues") cleanSource = "*No open issues recorded.*";
+            else if (target === "legal") cleanSource = "*No active legal disputes.*";
+            else if (target === "pending") cleanSource = "*No pending owner actions.*";
+            else if (target === "financials") cleanSource = "*No financial alerts.*";
+          }
+
+          const resolvedContent = prev["resolved"] ?? "";
+          const cleanResolved = resolvedContent
+            .replace("*No resolved issues yet.*", "")
+            .trim();
+          const resolvedBlock = `${patch.newLine!}\n  \`src: ${sourceId}\``;
+          const newResolved = cleanResolved
+            ? `${cleanResolved}\n${resolvedBlock}`
+            : resolvedBlock;
+
+          setPrevSections((p) => ({
+            ...p,
+            [target]: prev[target],
+            resolved: prev["resolved"],
+          }));
+
+          return {
+            ...prev,
+            [target]: cleanSource,
+            resolved: newResolved,
+          };
+        });
+        setFlash((f) => ({
+          ...f,
+          [target]: Date.now(),
+          resolved: Date.now(),
+        }));
+        return;
+      }
+
       setSections((prev) => {
         setPrevSections((pSnap) => ({ ...pSnap, [target]: prev[target] }));
         const current = prev[target] ?? "";
@@ -301,12 +381,10 @@ export function useSimulation() {
           next = appendToSection(current, patch.newLine!, sourceId);
         } else if (
           (effectiveAction === "update" ||
-            effectiveAction === "resolve" ||
             effectiveAction === "flag_conflict") &&
           effectiveTargetLine &&
           current.includes(effectiveTargetLine)
         ) {
-          // Replace the existing line and tag with the new source
           next = current.replace(
             effectiveTargetLine,
             `${patch.newLine!}\n  \`src: ${sourceId}\``,

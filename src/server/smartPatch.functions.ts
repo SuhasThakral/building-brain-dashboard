@@ -27,7 +27,8 @@ const SECTION_GUIDE = `Available section keys (pick exactly ONE):
 - open-issues: defects, broken things, repair requests (🔴 / 🟠)
 - legal: disputes, complaints, lawsuits (⚖️)
 - pending: pending owner / WEG actions, decisions awaited (⏳)
-- financials: invoices, payments, bank movements, dunning (💰)`;
+- financials: invoices, payments, bank movements, dunning (💰)
+- resolved: audit trail of fixed/closed issues — DO NOT target directly; the client moves resolved items here automatically`;
 
 function buildPrompt(input: {
   source: string;
@@ -74,6 +75,7 @@ RESOLVE vs APPEND rule (CRITICAL):
 - NEVER write "[RESOLVED ...]" or "✅" inside a newLine when action="append". The "[RESOLVED YYYY-MM-DD]" prefix only belongs in newLine when action="resolve".
 - If multiple existing entries could match, pick the one with the same unit number (WE 49, HAUS-12, etc.) or the same issue keyword (heating, roof, elevator).
 - If you are unsure whether a match exists, prefer "resolve" with your best-guess targetLine over "append".
+- NEVER set targetSection="resolved". Always target the ORIGINAL section (open-issues, legal, pending, financials) with action="resolve". The client will move the line into "resolved" automatically.
 
 CRITICAL — Static-table rules (owners, tenants, contractors):
 - These are pre-populated tables. NEVER append free-text lines to them.
