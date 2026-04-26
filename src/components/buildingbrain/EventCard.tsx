@@ -1,4 +1,4 @@
-import { Mail, FileText, Landmark } from "lucide-react";
+import { Mail, FileText, Landmark, ShieldAlert, Filter, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { FeedEvent } from "@/hooks/useSimulation";
 import type { SectionKey } from "@/data/mockData";
@@ -27,19 +27,84 @@ interface EventCardProps {
 
 export function EventCard({ event }: EventCardProps) {
   const Icon = ICONS[event.type];
+
+  // ─── FRAUD CARD ──────────────────────────────────────────
+  if (event.isFraud && event.fraudDetails) {
+    const d = event.fraudDetails;
+    return (
+      <div className="bb-slide-in rounded-lg border-2 border-destructive/70 bg-destructive/10 p-3 shadow-[0_0_0_1px_hsl(var(--destructive)/0.2)]">
+        <div className="flex items-start gap-3">
+          <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-destructive/60 bg-destructive/20 text-destructive">
+            <ShieldAlert className="h-4 w-4" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center justify-between gap-2">
+              <div className="truncate text-xs font-semibold text-destructive">
+                {event.sender}
+              </div>
+              <div className="shrink-0 font-mono text-[10px] text-destructive/80">
+                {event.timestamp}
+              </div>
+            </div>
+
+            <div className="mt-0.5 truncate text-xs text-foreground" title={event.subject}>
+              {event.subject}
+            </div>
+
+            <div className="mt-2 rounded border border-destructive/40 bg-background/40 p-2 text-[10.5px] font-mono">
+              <div className="mb-1 flex items-center gap-1 text-destructive font-semibold tracking-wide uppercase text-[9.5px]">
+                <ShieldAlert className="h-3 w-3" /> IBAN Mismatch — Stammdaten Cross-Check
+              </div>
+              <div className="text-[10.5px] text-foreground/80">
+                Vendor: <span className="font-semibold">{d.vendor}</span>
+              </div>
+              <div className="mt-1 grid grid-cols-[auto_1fr] gap-x-2 gap-y-0.5">
+                <span className="text-emerald">✓ Real</span>
+                <span className="truncate text-foreground/90" title={d.realIban}>
+                  {d.realIban} <span className="text-muted-foreground">/ {d.realBic}</span>
+                </span>
+                <span className="text-destructive">✗ Claimed</span>
+                <span className="truncate text-destructive" title={d.claimedIban}>
+                  {d.claimedIban} <span className="text-destructive/80">/ {d.claimedBic}</span>
+                </span>
+              </div>
+            </div>
+
+            <div className="mt-2 flex flex-wrap items-center gap-1.5">
+              <span className="inline-flex items-center gap-1 rounded border border-destructive/60 bg-destructive/20 px-1.5 py-0.5 font-mono text-[9.5px] font-bold uppercase tracking-wider text-destructive">
+                🚨 Fraud Blocked
+              </span>
+              <span className="text-[10.5px] text-destructive/90">
+                Payment prevented · human approval required
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── REGULAR / NOISE CARD ────────────────────────────────
   const isNoise = !event.isSignal;
-  // Graceful fallback so this component works against future API responses too
   const description =
     (event as unknown as { status?: string }).status ||
     event.appendLine ||
     event.subject;
+
+  const noiseStageLabel =
+    event.noiseStage === "rule"
+      ? "Rule Filter"
+      : event.noiseStage === "ai"
+        ? "AI Filter"
+        : "Noise";
+  const NoiseIcon = event.noiseStage === "ai" ? Sparkles : Filter;
 
   return (
     <div
       className={cn(
         "bb-slide-in rounded-lg border bg-card/60 p-3 transition-colors",
         isNoise
-          ? "border-border/60 opacity-55"
+          ? "border-border/60 opacity-60"
           : "border-border hover:border-emerald/40",
       )}
     >
@@ -87,11 +152,12 @@ export function EventCard({ event }: EventCardProps) {
           <div className="mt-2 flex flex-wrap items-center gap-1.5">
             {isNoise ? (
               <>
-                <span className="inline-flex items-center rounded border border-border bg-muted/30 px-1.5 py-0.5 font-mono text-[9.5px] font-bold uppercase tracking-wider text-muted-foreground">
-                  Noise
+                <span className="inline-flex items-center gap-1 rounded border border-border bg-muted/30 px-1.5 py-0.5 font-mono text-[9.5px] font-bold uppercase tracking-wider text-muted-foreground">
+                  <NoiseIcon className="h-2.5 w-2.5" />
+                  {noiseStageLabel}
                 </span>
                 <span className="text-[10.5px] text-muted-foreground">
-                  → Ignored (noise)
+                  → Filtered, no context update
                 </span>
               </>
             ) : (
@@ -120,9 +186,9 @@ export function EventCard({ event }: EventCardProps) {
             )}
           </div>
 
-          {event.reason && (
+          {(event.reason || (isNoise && event.noiseReason)) && (
             <div className="mt-1 text-[10px] italic text-muted-foreground/80">
-              {event.reason}
+              {event.reason || event.noiseReason}
             </div>
           )}
         </div>
