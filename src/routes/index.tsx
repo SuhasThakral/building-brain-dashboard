@@ -87,6 +87,7 @@ function Index() {
       />
 
       {(voice.state === "recording" ||
+        voice.state === "transcribing" ||
         voice.state === "thinking" ||
         voice.state === "answering" ||
         voice.state === "error") && (
@@ -97,9 +98,14 @@ function Index() {
               <>
                 <span className="text-muted-foreground">Listening… </span>
                 <span className="italic text-foreground/80">
-                  {voice.interim || "(speak now)"}
+                  click <strong>Stop</strong> when done
                 </span>
               </>
+            )}
+            {voice.state === "transcribing" && (
+              <span className="text-muted-foreground">
+                Transcribing your voice…
+              </span>
             )}
             {voice.state === "thinking" && (
               <span className="text-muted-foreground">
