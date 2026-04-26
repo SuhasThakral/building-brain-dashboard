@@ -599,6 +599,8 @@ export const SIMULATION_DAYS: Record<number, DayData> = {
         timestamp: '2026-01-10 16:19',
         subject: 'Rechnung RE-2026-6913',
         isSignal: false,
+        noiseStage: 'rule',
+        noiseReason: 'Invoice notification — auto-matched to incoming INV from DL-003',
       },
       {
         id: 'EMAIL-06585',
