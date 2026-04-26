@@ -5,7 +5,7 @@ import { GitCompare, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { SectionKey } from "@/data/mockData";
 
-type BadgeColor = "grey" | "blue" | "red" | "orange" | "yellow";
+type BadgeColor = "grey" | "blue" | "red" | "orange" | "yellow" | "green";
 
 interface SectionCardProps {
   sectionKey: SectionKey;
@@ -22,6 +22,7 @@ const BADGE_CLASSES: Record<BadgeColor, string> = {
   red: "bg-badge-red/15 text-badge-red border-badge-red/40",
   orange: "bg-badge-orange/15 text-badge-orange border-badge-orange/40",
   yellow: "bg-badge-yellow/15 text-badge-yellow border-badge-yellow/40",
+  green: "bg-emerald-500/15 text-emerald-400 border-emerald-500/40",
 };
 
 function formatRelative(ms: number, now: number): string {
