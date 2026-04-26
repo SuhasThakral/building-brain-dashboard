@@ -58,13 +58,14 @@ const PLACEHOLDERS = [
   "*No financial alerts.*",
 ];
 
-function appendToSection(current: string, line: string): string {
+function appendToSection(current: string, line: string, sourceId?: string): string {
   let next = current;
   for (const ph of PLACEHOLDERS) {
     next = next.replace(ph, "");
   }
   next = next.trim();
-  return next ? `${next}\n${line}` : line;
+  const block = sourceId ? `${line}\n  \`src: ${sourceId}\`` : line;
+  return next ? `${next}\n${block}` : block;
 }
 
 export function useSimulation() {
