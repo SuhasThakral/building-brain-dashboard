@@ -12,6 +12,16 @@ export type SectionKey =
   | 'pending'
   | 'financials'
 
+export type NoiseStage = 'rule' | 'ai'
+
+export interface FraudDetails {
+  vendor: string
+  realIban: string
+  claimedIban: string
+  realBic: string
+  claimedBic: string
+}
+
 export interface Event {
   id: string
   type: 'email' | 'invoice' | 'bank'
@@ -21,6 +31,10 @@ export interface Event {
   isSignal: boolean
   targetSection?: SectionKey
   appendLine?: string // line appended to the target section
+  isFraud?: boolean
+  fraudDetails?: FraudDetails
+  noiseStage?: NoiseStage
+  noiseReason?: string
 }
 
 export interface DayData {
@@ -133,6 +147,8 @@ export const SIMULATION_DAYS: Record<number, DayData> = {
         timestamp: '2026-01-01 17:12',
         subject: 'Jahresabrechnung 2025',
         isSignal: false,
+        noiseStage: 'rule',
+        noiseReason: 'Annual utility statement — auto-filed, no action required',
       },
       {
         id: 'INV-00195',
@@ -157,6 +173,24 @@ export const SIMULATION_DAYS: Record<number, DayData> = {
         timestamp: '2026-01-02 08:26',
         subject: 'Abschlagsanpassung',
         isSignal: false,
+        noiseStage: 'rule',
+        noiseReason: 'Routine premium adjustment — auto-updated in financials rate table',
+      },
+      {
+        id: 'FRAUD-HT-2026-01',
+        type: 'email',
+        sender: 'Olga Holsten <olga.holsten@heiztechnik-berlin.de>',
+        timestamp: '2026-01-02 09:15',
+        subject: 'Wichtig: Aktualisierung unserer Bankverbindung',
+        isSignal: false,
+        isFraud: true,
+        fraudDetails: {
+          vendor: 'Heiztechnik Berlin GmbH (DL-003)',
+          realIban: 'DE37 3704 0044 0229 6120 18',
+          claimedIban: 'DE22 3779 6241 5983 8778 75',
+          realBic: 'DEUTDEBB101',
+          claimedBic: 'BEVODEBBXXX',
+        },
       },
       {
         id: 'EMAIL-06552',
@@ -214,6 +248,8 @@ export const SIMULATION_DAYS: Record<number, DayData> = {
         timestamp: '2026-01-03 12:56',
         subject: 'Frage zur Hausgeldabrechnung',
         isSignal: false,
+        noiseStage: 'ai',
+        noiseReason: 'Routine billing question — standard reply template sent',
       },
       {
         id: 'EMAIL-06557',
@@ -298,6 +334,24 @@ export const SIMULATION_DAYS: Record<number, DayData> = {
         timestamp: '2026-01-05 11:45',
         subject: 'Rechnung RE-2026-1492',
         isSignal: false,
+        noiseStage: 'rule',
+        noiseReason: 'Invoice notification — auto-matched to incoming INV-00199',
+      },
+      {
+        id: 'FRAUD-RK-2026-01',
+        type: 'email',
+        sender: 'Malte Becker <malte.becker@reinigungsservice-kowalski.de>',
+        timestamp: '2026-01-05 09:42',
+        subject: 'Neue Bankverbindung — bitte ab sofort verwenden',
+        isSignal: false,
+        isFraud: true,
+        fraudDetails: {
+          vendor: 'Reinigungsservice Kowalski (DL-004)',
+          realIban: 'DE44 1007 0124 5991 0229 01',
+          claimedIban: 'DE49 0240 8437 1436 7437 92',
+          realBic: 'DEUTDEBB101',
+          claimedBic: 'BEVODEBBXXX',
+        },
       },
       {
         id: 'EMAIL-06564',
@@ -328,6 +382,8 @@ export const SIMULATION_DAYS: Record<number, DayData> = {
         timestamp: '2026-01-07',
         subject: 'DEBIT €987.70 — Hausmeister Mueller GmbH',
         isSignal: false,
+        noiseStage: 'rule',
+        noiseReason: 'Bank debit auto-matched to INV-00199 — already in financials',
       },
     ],
   },
@@ -363,6 +419,8 @@ export const SIMULATION_DAYS: Record<number, DayData> = {
         timestamp: '2026-01-06 16:05',
         subject: 'Internet/TV-Anschluss',
         isSignal: false,
+        noiseStage: 'ai',
+        noiseReason: 'Tenant ISP question — out of scope, FAQ link auto-replied',
       },
       {
         id: 'INV-00200',
@@ -398,6 +456,8 @@ export const SIMULATION_DAYS: Record<number, DayData> = {
         timestamp: '2026-01-07 10:54',
         subject: 'Wartungsbericht',
         isSignal: false,
+        noiseStage: 'rule',
+        noiseReason: 'Maintenance report — auto-archived against DL-013 record',
       },
       {
         id: 'EMAIL-06573',
@@ -406,6 +466,8 @@ export const SIMULATION_DAYS: Record<number, DayData> = {
         timestamp: '2026-01-07 17:26',
         subject: 'Rechnung RE-2026-6322',
         isSignal: false,
+        noiseStage: 'rule',
+        noiseReason: 'Utility invoice notification — auto-matched to DL-009',
       },
       {
         id: 'INV-00201',
@@ -430,6 +492,8 @@ export const SIMULATION_DAYS: Record<number, DayData> = {
         timestamp: '2026-01-08 10:53',
         subject: 'Internet/TV-Anschluss',
         isSignal: false,
+        noiseStage: 'ai',
+        noiseReason: 'Tenant ISP question — out of scope, FAQ link auto-replied',
       },
       {
         id: 'EMAIL-06576',
@@ -476,6 +540,8 @@ export const SIMULATION_DAYS: Record<number, DayData> = {
         timestamp: '2026-01-09 12:06',
         subject: 'SEV - Monatsauszug',
         isSignal: false,
+        noiseStage: 'rule',
+        noiseReason: 'Monthly SEV statement — auto-filed under EIG-018',
       },
       {
         id: 'EMAIL-06580',
@@ -533,6 +599,8 @@ export const SIMULATION_DAYS: Record<number, DayData> = {
         timestamp: '2026-01-10 16:19',
         subject: 'Rechnung RE-2026-6913',
         isSignal: false,
+        noiseStage: 'rule',
+        noiseReason: 'Invoice notification — auto-matched to incoming INV from DL-003',
       },
       {
         id: 'EMAIL-06585',

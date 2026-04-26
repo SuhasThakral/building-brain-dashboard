@@ -4,6 +4,7 @@ import { TopBar } from "@/components/buildingbrain/TopBar";
 import { ContextFile } from "@/components/buildingbrain/ContextFile";
 import { EventFeed } from "@/components/buildingbrain/EventFeed";
 import { IngestPanel } from "@/components/buildingbrain/IngestPanel";
+import { FraudAlerts } from "@/components/buildingbrain/FraudAlerts";
 import { useSimulation } from "@/hooks/useSimulation";
 import { useSmartIngest } from "@/hooks/useSmartIngest";
 
@@ -15,7 +16,7 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "AI-powered property management dashboard for WEG Immanuelkirchstraße 26, Berlin. Live event feed and incremental context file updates.",
+          "AI-powered property management dashboard for WEG Immanuelkirchstraße 26, Berlin. Live event feed, fraud detection, and incremental context file updates.",
       },
     ],
   }),
@@ -34,6 +35,8 @@ function Index() {
     reset,
     getSections,
     applySmartPatch,
+    fraudAlerts,
+    dismissFraud,
   } = useSimulation();
 
   const ingest = useSmartIngest({
@@ -61,6 +64,8 @@ function Index() {
         isPlaying={isPlaying}
         playingDay={playingDay}
       />
+
+      <FraudAlerts alerts={fraudAlerts} onDismiss={dismissFraud} />
 
       <main className="flex flex-1 overflow-hidden">
         <section className="w-3/5 border-r border-border">
