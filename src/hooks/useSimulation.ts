@@ -276,5 +276,7 @@ export function useSimulation() {
     reset,
     getSections,
     applySmartPatch,
+    fraudAlerts,
+    dismissFraud,
   };
 }
