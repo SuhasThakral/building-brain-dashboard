@@ -21,9 +21,9 @@ export interface SmartPatchResult {
 const SECTION_GUIDE = `Available section keys (pick exactly ONE):
 - property-core: building facts, address, manager
 - accounts: bank accounts, IBANs
-- owners: WEG owners (Eigentümer)
-- tenants: renters (Mieter)
-- contractors: service providers, caretakers, suppliers
+- owners: WEG owners (Eigentümer) — STATIC table, includes Beirat (board) membership column
+- tenants: renters (Mieter) — STATIC table, includes lease end dates
+- contractors: service providers, caretakers, suppliers — STATIC table with monthly rates
 - open-issues: defects, broken things, repair requests (🔴 / 🟠)
 - legal: disputes, complaints, lawsuits (⚖️)
 - pending: pending owner / WEG actions, decisions awaited (⏳)
@@ -66,7 +66,16 @@ Rules:
 - "ignore": noise, marketing, irrelevant — newLine null
 - Priority when sources clash: bank > ERP/Stammdaten > PDF invoice > email
 - newLine must be a SINGLE markdown line, prefer "- [YYYY-MM-DD] <emoji> <summary>" format
-- Always reply in English regardless of source language.`;
+- Always reply in English regardless of source language.
+
+CRITICAL — Static-table rules (owners, tenants, contractors):
+- These are pre-populated tables. NEVER append free-text lines to them.
+- If a fact is ALREADY captured (e.g. Beirat member already shows ✓, contractor already listed, lease end already set), prefer "ignore" unless the VALUE is actually changing.
+  Example: re-electing the SAME Beirat members → ignore (no change). Only flag in "pending" if explicitly notable.
+- For tenant lease changes: targetSection="tenants", action="update", targetLine = the existing tenant's row, newLine = same row with the new lease-end date.
+- For contractor rate changes: targetSection="contractors", action="update", targetLine = the existing contractor's row, newLine = same row with the new monthly rate filled in (replace "—" with the amount).
+- For owner changes (sale, address, Beirat status flip): targetSection="owners", action="update", targetLine = the existing owner's row.
+- If you cannot find an exact matching line in a static table, fall back to "pending" (action="append") describing the change — never invent new rows in static tables.`;
 }
 
 export const smartPatch = createServerFn({ method: "POST" })
