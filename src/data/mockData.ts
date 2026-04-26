@@ -248,6 +248,8 @@ export const SIMULATION_DAYS: Record<number, DayData> = {
         timestamp: '2026-01-03 12:56',
         subject: 'Frage zur Hausgeldabrechnung',
         isSignal: false,
+        noiseStage: 'ai',
+        noiseReason: 'Routine billing question — standard reply template sent',
       },
       {
         id: 'EMAIL-06557',
