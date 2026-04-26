@@ -70,17 +70,17 @@ Rules:
 
 RESOLVE vs APPEND rule (CRITICAL):
 - If the new event describes something being FIXED, REPAIRED, COMPLETED, CLOSED, RESOLVED, or DONE, AND the targetSection already contains an entry about the SAME unit/issue/entity → you MUST use action="resolve", NOT "append".
-- When action="resolve": targetLine MUST be the EXACT verbatim text of the existing entry from the section (copy it character-for-character, including emojis and dates, but EXCLUDE any trailing \`src: ...\` trace lines).
+- When action="resolve": targetLine MUST be the EXACT verbatim text of the existing entry from the section (copy it character-for-character, including emojis and dates, but EXCLUDE any trailing "src: ..." trace lines wrapped in backticks).
 - NEVER write "[RESOLVED ...]" or "✅" inside a newLine when action="append". The "[RESOLVED YYYY-MM-DD]" prefix only belongs in newLine when action="resolve".
 - If multiple existing entries could match, pick the one with the same unit number (WE 49, HAUS-12, etc.) or the same issue keyword (heating, roof, elevator).
-- If you are unsure whether a match exists, prefer "resolve" with your best-guess targetLine over "append".`;
+- If you are unsure whether a match exists, prefer "resolve" with your best-guess targetLine over "append".
 
 CRITICAL — Static-table rules (owners, tenants, contractors):
 - These are pre-populated tables. NEVER append free-text lines to them.
 - If a fact is ALREADY captured (e.g. Beirat member already shows ✓, contractor already listed, lease end already set), prefer "ignore" unless the VALUE is actually changing.
   Example: re-electing the SAME Beirat members → ignore (no change). Only flag in "pending" if explicitly notable.
 - For tenant lease changes: targetSection="tenants", action="update", targetLine = the existing tenant's row, newLine = same row with the new lease-end date.
-- For contractor rate changes: targetSection="contractors", action="update", targetLine = the existing contractor's row, newLine = same row with the new monthly rate filled in (replace "—" with the amount).
+- For contractor rate changes: targetSection="contractors", action="update", targetLine = the existing contractor's row, newLine = same row with the new monthly rate filled in (replace the dash with the amount).
 - For owner changes (sale, address, Beirat status flip): targetSection="owners", action="update", targetLine = the existing owner's row.
 - If you cannot find an exact matching line in a static table, fall back to "pending" (action="append") describing the change — never invent new rows in static tables.`;
 }
