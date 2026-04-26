@@ -1,8 +1,11 @@
+import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { TopBar } from "@/components/buildingbrain/TopBar";
 import { ContextFile } from "@/components/buildingbrain/ContextFile";
 import { EventFeed } from "@/components/buildingbrain/EventFeed";
+import { IngestPanel } from "@/components/buildingbrain/IngestPanel";
 import { useSimulation } from "@/hooks/useSimulation";
+import { useSmartIngest } from "@/hooks/useSmartIngest";
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -29,13 +32,32 @@ function Index() {
     playingDay,
     playDay,
     reset,
+    getSections,
+    applySmartPatch,
   } = useSimulation();
+
+  const ingest = useSmartIngest({
+    getSections,
+    applyPatch: (e) => applySmartPatch({
+      action: e.action,
+      targetSection: e.targetSection,
+      newLine: e.newLine,
+      targetLine: e.targetLine,
+      conflictNote: e.conflictNote,
+      reason: e.reason,
+      source: e.source,
+      summary: e.summary,
+    }),
+  });
+
+  const [ingestOpen, setIngestOpen] = useState(false);
 
   return (
     <div className="flex h-screen flex-col bg-background text-foreground">
       <TopBar
         onPlayDay={playDay}
         onReset={reset}
+        onOpenIngest={() => setIngestOpen(true)}
         isPlaying={isPlaying}
         playingDay={playingDay}
       />
@@ -52,6 +74,17 @@ function Index() {
           <EventFeed feed={feed} stats={stats} />
         </aside>
       </main>
+
+      <IngestPanel
+        open={ingestOpen}
+        onOpenChange={setIngestOpen}
+        busy={ingest.busy}
+        progress={ingest.progress}
+        error={ingest.error}
+        history={ingest.history}
+        onIngestText={ingest.ingestText}
+        onIngestPdf={ingest.ingestPdf}
+      />
     </div>
   );
 }

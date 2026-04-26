@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Play, RotateCcw, Building2 } from "lucide-react";
+import { Play, RotateCcw, Building2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -12,6 +12,7 @@ import {
 interface TopBarProps {
   onPlayDay: (day: number) => void;
   onReset: () => void;
+  onOpenIngest: () => void;
   isPlaying: boolean;
   playingDay: number | null;
 }
@@ -19,6 +20,7 @@ interface TopBarProps {
 export function TopBar({
   onPlayDay,
   onReset,
+  onOpenIngest,
   isPlaying,
   playingDay,
 }: TopBarProps) {
@@ -77,6 +79,15 @@ export function TopBar({
                 : "Play"}
             </Button>
           </div>
+
+          <Button
+            size="sm"
+            onClick={onOpenIngest}
+            className="h-9 gap-1.5 bg-emerald/15 px-3 text-xs font-semibold text-emerald hover:bg-emerald/25"
+          >
+            <Sparkles className="h-3.5 w-3.5" />
+            Ingest
+          </Button>
 
           <Button
             size="sm"

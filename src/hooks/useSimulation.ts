@@ -8,12 +8,17 @@ import {
 
 export interface FeedEvent extends Event {
   arrivedAt: number; // epoch ms when added to feed
+  // Optional smart-patch annotations (for events ingested by Gemini)
+  smartAction?: "append" | "update" | "resolve" | "flag_conflict" | "ignore";
+  reason?: string;
 }
 
 export interface Stats {
   eventsProcessed: number;
   sectionsUpdated: number;
   noiseFiltered: number;
+  conflicts: number;
+  resolved: number;
 }
 
 export interface SectionFlash {
@@ -26,6 +31,8 @@ const initialStats = (): Stats => ({
   eventsProcessed: 0,
   sectionsUpdated: 0,
   noiseFiltered: 0,
+  conflicts: 0,
+  resolved: 0,
 });
 
 const PLACEHOLDERS = [
@@ -129,6 +136,82 @@ export function useSimulation() {
     [isPlaying, ingestEvent],
   );
 
+  // Keep a ref to the latest sections so async ingestion sees fresh state
+  const sectionsRef = useRef(sections);
+  useEffect(() => {
+    sectionsRef.current = sections;
+  }, [sections]);
+  const getSections = useCallback(() => sectionsRef.current, []);
+
+  /**
+   * Apply a smart-patch result from Gemini.
+   * Handles append / update / resolve / flag_conflict / ignore.
+   */
+  const applySmartPatch = useCallback(
+    (patch: {
+      action: "append" | "update" | "resolve" | "flag_conflict" | "ignore";
+      targetSection: SectionKey;
+      newLine: string | null;
+      targetLine: string | null;
+      conflictNote: string | null;
+      reason: string;
+      source: string;
+      summary: string;
+    }) => {
+      const isSignal = patch.action !== "ignore";
+      const feedEvt: FeedEvent = {
+        id: `SMART-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        type: "email",
+        sender: patch.source,
+        timestamp: new Date().toISOString(),
+        subject: patch.summary.slice(0, 120),
+        isSignal,
+        targetSection: isSignal ? patch.targetSection : undefined,
+        appendLine: patch.newLine ?? undefined,
+        arrivedAt: Date.now(),
+        smartAction: patch.action,
+        reason: patch.reason,
+      };
+      setFeed((f) => [feedEvt, ...f]);
+
+      setStats((s) => ({
+        ...s,
+        eventsProcessed: s.eventsProcessed + 1,
+        sectionsUpdated: isSignal ? s.sectionsUpdated + 1 : s.sectionsUpdated,
+        noiseFiltered: isSignal ? s.noiseFiltered : s.noiseFiltered + 1,
+        conflicts: patch.action === "flag_conflict" ? s.conflicts + 1 : s.conflicts,
+        resolved: patch.action === "resolve" ? s.resolved + 1 : s.resolved,
+      }));
+
+      if (!isSignal || !patch.newLine) return;
+      const target = patch.targetSection;
+
+      setSections((prev) => {
+        setPrevSections((pSnap) => ({ ...pSnap, [target]: prev[target] }));
+        const current = prev[target] ?? "";
+        let next: string;
+
+        if (patch.action === "append") {
+          next = appendToSection(current, patch.newLine!);
+        } else if (
+          (patch.action === "update" ||
+            patch.action === "resolve" ||
+            patch.action === "flag_conflict") &&
+          patch.targetLine &&
+          current.includes(patch.targetLine)
+        ) {
+          next = current.replace(patch.targetLine, patch.newLine!);
+        } else {
+          // Fallback: append if we couldn't match the target line
+          next = appendToSection(current, patch.newLine!);
+        }
+        return { ...prev, [target]: next };
+      });
+      setFlash((f) => ({ ...f, [target]: Date.now() }));
+    },
+    [],
+  );
+
   return {
     sections,
     prevSections,
@@ -139,5 +222,7 @@ export function useSimulation() {
     playingDay,
     playDay,
     reset,
+    getSections,
+    applySmartPatch,
   };
 }
