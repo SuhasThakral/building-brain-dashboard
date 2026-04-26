@@ -540,6 +540,8 @@ export const SIMULATION_DAYS: Record<number, DayData> = {
         timestamp: '2026-01-09 12:06',
         subject: 'SEV - Monatsauszug',
         isSignal: false,
+        noiseStage: 'rule',
+        noiseReason: 'Monthly SEV statement — auto-filed under EIG-018',
       },
       {
         id: 'EMAIL-06580',
