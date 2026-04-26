@@ -58,13 +58,14 @@ const PLACEHOLDERS = [
   "*No financial alerts.*",
 ];
 
-function appendToSection(current: string, line: string): string {
+function appendToSection(current: string, line: string, sourceId?: string): string {
   let next = current;
   for (const ph of PLACEHOLDERS) {
     next = next.replace(ph, "");
   }
   next = next.trim();
-  return next ? `${next}\n${line}` : line;
+  const block = sourceId ? `${line}\n  \`src: ${sourceId}\`` : line;
+  return next ? `${next}\n${block}` : block;
 }
 
 export function useSimulation() {
@@ -160,7 +161,7 @@ export function useSimulation() {
         setPrevSections((pSnap) => ({ ...pSnap, [target]: prev[target] }));
         return {
           ...prev,
-          [target]: appendToSection(prev[target], evt.appendLine!),
+          [target]: appendToSection(prev[target], evt.appendLine!, evt.id),
         };
       });
       setFlash((f) => ({ ...f, [target]: Date.now() }));
@@ -238,13 +239,14 @@ export function useSimulation() {
       if (!isSignal || !patch.newLine) return;
       const target = patch.targetSection;
 
+      const sourceId = feedEvt.id;
       setSections((prev) => {
         setPrevSections((pSnap) => ({ ...pSnap, [target]: prev[target] }));
         const current = prev[target] ?? "";
         let next: string;
 
         if (patch.action === "append") {
-          next = appendToSection(current, patch.newLine!);
+          next = appendToSection(current, patch.newLine!, sourceId);
         } else if (
           (patch.action === "update" ||
             patch.action === "resolve" ||
@@ -252,10 +254,13 @@ export function useSimulation() {
           patch.targetLine &&
           current.includes(patch.targetLine)
         ) {
-          next = current.replace(patch.targetLine, patch.newLine!);
+          // Replace the existing line and tag with the new source
+          next = current.replace(
+            patch.targetLine,
+            `${patch.newLine!}\n  \`src: ${sourceId}\``,
+          );
         } else {
-          // Fallback: append if we couldn't match the target line
-          next = appendToSection(current, patch.newLine!);
+          next = appendToSection(current, patch.newLine!, sourceId);
         }
         return { ...prev, [target]: next };
       });
@@ -266,9 +271,10 @@ export function useSimulation() {
 
   /** Manually append a line to a section (used by the voice assistant). */
   const patchSection = useCallback((section: SectionKey, line: string) => {
+    const sourceId = `VOICE-${Date.now().toString(36)}`;
     setSections((prev) => {
       setPrevSections((p) => ({ ...p, [section]: prev[section] }));
-      return { ...prev, [section]: appendToSection(prev[section], line) };
+      return { ...prev, [section]: appendToSection(prev[section], line, sourceId) };
     });
     setFlash((f) => ({ ...f, [section]: Date.now() }));
     setStats((s) => ({ ...s, sectionsUpdated: s.sectionsUpdated + 1 }));
