@@ -382,6 +382,8 @@ export const SIMULATION_DAYS: Record<number, DayData> = {
         timestamp: '2026-01-07',
         subject: 'DEBIT €987.70 — Hausmeister Mueller GmbH',
         isSignal: false,
+        noiseStage: 'rule',
+        noiseReason: 'Bank debit auto-matched to INV-00199 — already in financials',
       },
     ],
   },
