@@ -27,18 +27,19 @@ export function TopBar({
   const [selectedDay, setSelectedDay] = useState<string>("1");
 
   return (
-    <header className="border-b border-border bg-card/40 backdrop-blur-sm">
+    <header className="bb-bg-topbar border-b border-border backdrop-blur-sm">
       <div className="flex flex-wrap items-center gap-4 px-6 py-3">
         <div className="flex items-center gap-3 min-w-0">
-          <div className="flex h-9 w-9 items-center justify-center rounded-md bg-emerald/10 text-emerald">
+          <div className="bb-glow-emerald flex h-9 w-9 items-center justify-center rounded-md border border-emerald/30 bg-gradient-to-br from-emerald/30 to-emerald/5 text-emerald">
             <Building2 className="h-5 w-5" />
           </div>
           <div className="min-w-0">
             <div className="text-xs uppercase tracking-wider text-muted-foreground">
               BuildingBrain
             </div>
-            <h1 className="truncate text-sm font-semibold leading-tight text-foreground">
-              WEG Immanuelkirchstraße 26, Berlin
+            <h1 className="truncate text-sm font-semibold leading-tight">
+              <span className="bb-text-gradient">WEG Immanuelkirchstraße 26</span>
+              <span className="text-foreground/80">, Berlin</span>
             </h1>
           </div>
         </div>
