@@ -211,7 +211,59 @@ export function useSimulation() {
       source: string;
       summary: string;
     }) => {
-      const isSignal = patch.action !== "ignore";
+      // ── SAFETY NET ──────────────────────────────────────────────────────
+      // Gemini sometimes returns action="append" with [RESOLVED ...] / ✅ in
+      // the newLine instead of action="resolve" with a targetLine pointer.
+      // Detect that case here and salvage it into a real resolve.
+      let effectiveAction = patch.action;
+      let effectiveTargetLine = patch.targetLine;
+      if (
+        effectiveAction === "append" &&
+        patch.newLine &&
+        (patch.newLine.includes("[RESOLVED") ||
+          patch.newLine.startsWith("- ✅") ||
+          patch.newLine.includes(" ✅ "))
+      ) {
+        const current = sectionsRef.current[patch.targetSection] ?? "";
+        const unitMatch = patch.newLine.match(/(WE\s?\d+|HAUS-\d+|TG\s?\d+|GE\s?\d+)/);
+        const lines = current.split("\n");
+        let candidate: string | undefined;
+        if (unitMatch) {
+          const unit = unitMatch[0];
+          candidate = lines.find(
+            (l) =>
+              l.includes(unit) &&
+              !l.includes("[RESOLVED") &&
+              !l.startsWith("  `src:") &&
+              l.trim().startsWith("- "),
+          );
+        }
+        if (!candidate) {
+          // Fall back to keyword match (heating, roof, etc.)
+          const keywords = ["heating", "heizung", "roof", "dach", "elevator", "aufzug", "boiler", "leak", "wasser"];
+          const lowered = patch.newLine.toLowerCase();
+          const kw = keywords.find((k) => lowered.includes(k));
+          if (kw) {
+            candidate = lines.find(
+              (l) =>
+                l.toLowerCase().includes(kw) &&
+                !l.includes("[RESOLVED") &&
+                !l.startsWith("  `src:") &&
+                l.trim().startsWith("- "),
+            );
+          }
+        }
+        if (candidate) {
+          console.log(
+            "[smartPatch safety-net] converting append → resolve, matched:",
+            candidate,
+          );
+          effectiveAction = "resolve";
+          effectiveTargetLine = candidate;
+        }
+      }
+
+      const isSignal = effectiveAction !== "ignore";
       const feedEvt: FeedEvent = {
         id: `SMART-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
         type: "email",
@@ -222,7 +274,7 @@ export function useSimulation() {
         targetSection: isSignal ? patch.targetSection : undefined,
         appendLine: patch.newLine ?? undefined,
         arrivedAt: Date.now(),
-        smartAction: patch.action,
+        smartAction: effectiveAction,
         reason: patch.reason,
       };
       setFeed((f) => [feedEvt, ...f]);
@@ -232,8 +284,8 @@ export function useSimulation() {
         eventsProcessed: s.eventsProcessed + 1,
         sectionsUpdated: isSignal ? s.sectionsUpdated + 1 : s.sectionsUpdated,
         noiseFiltered: isSignal ? s.noiseFiltered : s.noiseFiltered + 1,
-        conflicts: patch.action === "flag_conflict" ? s.conflicts + 1 : s.conflicts,
-        resolved: patch.action === "resolve" ? s.resolved + 1 : s.resolved,
+        conflicts: effectiveAction === "flag_conflict" ? s.conflicts + 1 : s.conflicts,
+        resolved: effectiveAction === "resolve" ? s.resolved + 1 : s.resolved,
       }));
 
       if (!isSignal || !patch.newLine) return;
@@ -245,18 +297,18 @@ export function useSimulation() {
         const current = prev[target] ?? "";
         let next: string;
 
-        if (patch.action === "append") {
+        if (effectiveAction === "append") {
           next = appendToSection(current, patch.newLine!, sourceId);
         } else if (
-          (patch.action === "update" ||
-            patch.action === "resolve" ||
-            patch.action === "flag_conflict") &&
-          patch.targetLine &&
-          current.includes(patch.targetLine)
+          (effectiveAction === "update" ||
+            effectiveAction === "resolve" ||
+            effectiveAction === "flag_conflict") &&
+          effectiveTargetLine &&
+          current.includes(effectiveTargetLine)
         ) {
           // Replace the existing line and tag with the new source
           next = current.replace(
-            patch.targetLine,
+            effectiveTargetLine,
             `${patch.newLine!}\n  \`src: ${sourceId}\``,
           );
         } else {
