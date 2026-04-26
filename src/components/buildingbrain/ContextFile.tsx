@@ -4,7 +4,7 @@ import type { SectionKey } from "@/data/mockData";
 interface SectionDef {
   key: SectionKey;
   title: string;
-  badge: "grey" | "blue" | "red" | "orange" | "yellow";
+  badge: "grey" | "blue" | "red" | "orange" | "yellow" | "green";
 }
 
 const SECTIONS: SectionDef[] = [
@@ -17,6 +17,7 @@ const SECTIONS: SectionDef[] = [
   { key: "legal", title: "Legal Disputes", badge: "orange" },
   { key: "pending", title: "Pending Owner Actions", badge: "yellow" },
   { key: "financials", title: "Financial Alerts", badge: "red" },
+  { key: "resolved", title: "Resolved Issues", badge: "green" },
 ];
 
 interface ContextFileProps {

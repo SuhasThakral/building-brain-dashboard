@@ -11,6 +11,7 @@ export type SectionKey =
   | 'legal'
   | 'pending'
   | 'financials'
+  | 'resolved'
 
 export type NoiseStage = 'rule' | 'ai'
 
@@ -109,6 +110,7 @@ Tax No: 13/456/78901`,
   'pending': `*No pending owner actions.*`,
 
   'financials': `*No financial alerts.*`,
+  'resolved': `*No resolved issues yet.*`,
 }
 
 // ─────────────────────────────────────────────
