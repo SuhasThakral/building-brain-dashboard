@@ -12,7 +12,7 @@ export function FraudAlerts({ alerts, onDismiss }: FraudAlertsProps) {
   if (active.length === 0) return null;
 
   return (
-    <div className="border-b-2 border-destructive/60 bg-destructive/15 px-6 py-3">
+    <div className="bb-bg-fraud border-b-2 border-destructive/60 px-6 py-3">
       <div className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-destructive">
         <ShieldAlert className="h-4 w-4 animate-pulse" />
         Fraud Detected · {active.length} payment{active.length > 1 ? "s" : ""} blocked
