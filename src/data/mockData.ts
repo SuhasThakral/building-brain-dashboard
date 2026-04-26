@@ -147,6 +147,8 @@ export const SIMULATION_DAYS: Record<number, DayData> = {
         timestamp: '2026-01-01 17:12',
         subject: 'Jahresabrechnung 2025',
         isSignal: false,
+        noiseStage: 'rule',
+        noiseReason: 'Annual utility statement — auto-filed, no action required',
       },
       {
         id: 'INV-00195',
