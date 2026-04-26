@@ -194,6 +194,13 @@
   border-radius: 3px;
   font-size: 11px;
 }
+/* `src: ...` traceability tags — render dimmer + smaller */
+.bb-md code:where(:not(pre code)) {
+  font-size: 10px;
+  color: oklch(0.62 0.02 250);
+  background: oklch(0.22 0.013 250);
+  border: 1px solid var(--border);
+}
 
 /* Diff styling */
 .bb-diff-add {
