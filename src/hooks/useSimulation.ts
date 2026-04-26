@@ -161,7 +161,7 @@ export function useSimulation() {
         setPrevSections((pSnap) => ({ ...pSnap, [target]: prev[target] }));
         return {
           ...prev,
-          [target]: appendToSection(prev[target], evt.appendLine!),
+          [target]: appendToSection(prev[target], evt.appendLine!, evt.id),
         };
       });
       setFlash((f) => ({ ...f, [target]: Date.now() }));
