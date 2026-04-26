@@ -84,7 +84,7 @@ export function EventCard({ event }: EventCardProps) {
             </div>
           )}
 
-          <div className="mt-2 flex items-center gap-1.5">
+          <div className="mt-2 flex flex-wrap items-center gap-1.5">
             {isNoise ? (
               <>
                 <span className="inline-flex items-center rounded border border-border bg-muted/30 px-1.5 py-0.5 font-mono text-[9.5px] font-bold uppercase tracking-wider text-muted-foreground">
@@ -95,11 +95,36 @@ export function EventCard({ event }: EventCardProps) {
                 </span>
               </>
             ) : (
-              <span className="inline-flex items-center gap-1 rounded border border-emerald/30 bg-emerald/10 px-1.5 py-0.5 text-[10.5px] font-medium text-emerald">
-                → {event.targetSection ? SECTION_LABELS[event.targetSection] : "Update"}
-              </span>
+              <>
+                {event.smartAction && event.smartAction !== "append" && (
+                  <span
+                    className={cn(
+                      "inline-flex items-center rounded border px-1.5 py-0.5 font-mono text-[9.5px] font-bold uppercase tracking-wider",
+                      event.smartAction === "resolve" &&
+                        "border-emerald/40 bg-emerald/10 text-emerald",
+                      event.smartAction === "update" &&
+                        "border-blue-400/40 bg-blue-400/10 text-blue-300",
+                      event.smartAction === "flag_conflict" &&
+                        "border-orange-400/40 bg-orange-400/10 text-orange-300",
+                    )}
+                  >
+                    {event.smartAction === "flag_conflict"
+                      ? "⚡ Conflict"
+                      : event.smartAction}
+                  </span>
+                )}
+                <span className="inline-flex items-center gap-1 rounded border border-emerald/30 bg-emerald/10 px-1.5 py-0.5 text-[10.5px] font-medium text-emerald">
+                  → {event.targetSection ? SECTION_LABELS[event.targetSection] : "Update"}
+                </span>
+              </>
             )}
           </div>
+
+          {event.reason && (
+            <div className="mt-1 text-[10px] italic text-muted-foreground/80">
+              {event.reason}
+            </div>
+          )}
         </div>
       </div>
     </div>
