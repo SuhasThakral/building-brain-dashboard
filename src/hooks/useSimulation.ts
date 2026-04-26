@@ -3,6 +3,7 @@ import {
   DAY0_SECTIONS,
   SIMULATION_DAYS,
   type Event,
+  type FraudDetails,
   type SectionKey,
 } from "@/data/mockData";
 
@@ -17,6 +18,9 @@ export interface Stats {
   eventsProcessed: number;
   sectionsUpdated: number;
   noiseFiltered: number;
+  noiseRule: number;
+  noiseAi: number;
+  fraudBlocked: number;
   conflicts: number;
   resolved: number;
 }
@@ -26,11 +30,23 @@ export interface SectionFlash {
   [key: string]: number;
 }
 
+export interface FraudAlert {
+  id: string;
+  arrivedAt: number;
+  details: FraudDetails;
+  sender: string;
+  subject: string;
+  dismissed: boolean;
+}
+
 const initialSections = (): Record<SectionKey, string> => ({ ...DAY0_SECTIONS });
 const initialStats = (): Stats => ({
   eventsProcessed: 0,
   sectionsUpdated: 0,
   noiseFiltered: 0,
+  noiseRule: 0,
+  noiseAi: 0,
+  fraudBlocked: 0,
   conflicts: 0,
   resolved: 0,
 });
