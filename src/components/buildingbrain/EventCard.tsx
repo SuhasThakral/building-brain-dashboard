@@ -103,9 +103,9 @@ export function EventCard({ event }: EventCardProps) {
                       event.smartAction === "resolve" &&
                         "border-emerald/40 bg-emerald/10 text-emerald",
                       event.smartAction === "update" &&
-                        "border-blue-400/40 bg-blue-400/10 text-blue-300",
+                        "border-badge-blue/40 bg-badge-blue/10 text-badge-blue",
                       event.smartAction === "flag_conflict" &&
-                        "border-orange-400/40 bg-orange-400/10 text-orange-300",
+                        "border-badge-orange/40 bg-badge-orange/10 text-badge-orange",
                     )}
                   >
                     {event.smartAction === "flag_conflict"

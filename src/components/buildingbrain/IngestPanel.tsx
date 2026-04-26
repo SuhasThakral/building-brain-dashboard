@@ -173,9 +173,9 @@ export function IngestPanel({
 function ActionBadge({ action }: { action: IngestedEvent["action"] }) {
   const styles: Record<IngestedEvent["action"], string> = {
     append: "border-emerald/30 bg-emerald/10 text-emerald",
-    update: "border-blue-400/40 bg-blue-400/10 text-blue-300",
+    update: "border-badge-blue/40 bg-badge-blue/10 text-badge-blue",
     resolve: "border-emerald/40 bg-emerald/15 text-emerald",
-    flag_conflict: "border-orange-400/40 bg-orange-400/10 text-orange-300",
+    flag_conflict: "border-badge-orange/40 bg-badge-orange/10 text-badge-orange",
     ignore: "border-border bg-muted/30 text-muted-foreground",
   };
   const label =
