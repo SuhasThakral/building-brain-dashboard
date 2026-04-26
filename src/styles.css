@@ -106,12 +106,26 @@
   }
 
   body {
-    background-color: var(--color-background);
+    background: var(--gradient-app);
+    background-attachment: fixed;
     color: var(--color-foreground);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
   }
 }
+
+/* Gradient utility classes */
+.bb-bg-topbar { background: var(--gradient-topbar); }
+.bb-bg-fraud { background: var(--gradient-fraud); box-shadow: var(--shadow-glow-fraud); }
+.bb-bg-card-gradient { background: var(--gradient-card); }
+.bb-text-gradient {
+  background: var(--gradient-emerald);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+.bb-glow-emerald { box-shadow: var(--shadow-glow-emerald); }
 
 /* Pulsing live dot */
 @keyframes bb-pulse {
